@@ -3,462 +3,456 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GestoFest · Gestorando Premium</title>
-  <meta name="description" content="GestoFest, el festival de los monotributistas. Activá Gestorando Premium con pago seguro de Mercado Pago." />
+  <title>Pagar · GestoFest · Gestorando Premium</title>
   <meta name="robots" content="noindex" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://sdk.mercadopago.com/js/v2"></script>
-
   <style>
-    /* ---------- Tokens GestoFest (tomados de la vía pública y el banner) ---------- */
+    /* Layout de checkout estilo Shopify, con acentos GestoFest */
     :root {
-      --purple: #5a4ed5;       /* banda superior */
-      --mint: #89ede4;         /* final del degradé / "Fest" */
-      --indigo: #27197f;       /* títulos */
-      --indigo-2: #442587;
-      --lilac: #ddd8fc;        /* resaltado tipo marcador + fondos de íconos */
-      --lilac-soft: #f1efff;
-      --green: #13a45e;        /* CTA */
-      --green-600: #0f8c50;
-      --yellow: #f5c542;
-      --pink: #e84d8a;
-      --paper: #f4f3f8;
-      --white: #ffffff;
-      --text: #27197f;
-      --muted: #5e5a7a;
-      --line: #e6e3f3;
-      --error: #d93a4a;
-      --radius-xl: 28px;
-      --radius-md: 14px;
-      --maxw: 1120px;
+      --accent: #5a4ed5;          /* violeta GestoFest: links, selección */
+      --accent-bg: #f3f1ff;
+      --cta: #13a45e;             /* verde CTA de la campaña */
+      --cta-hover: #0f8c50;
+      --text: #1a1a1a;
+      --muted: #707070;
+      --border: #dedede;
+      --side: #f5f5f5;
+      --error: #dd1d1d;
+      --r: 5px;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; }
-    body {
-      font-family: "Nunito", system-ui, sans-serif;
-      color: var(--text);
-      background: var(--paper);
-      -webkit-font-smoothing: antialiased;
-    }
-    a { color: inherit; }
-    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); font-size: 14px; background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; color: inherit; }
 
-    /* ---------- Banner GestoFest ---------- */
-    .banner {
-      position: relative;
-      background: linear-gradient(90deg, #5a4ed5 0, #5a4ed5 700px, #7097dc 1200px, #89ede4 1920px);
-      height: 200px;
-      overflow: hidden;
-    }
-    .banner-fallback { position:absolute; left:24px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
-    .banner-fallback .pill { background:linear-gradient(90deg,#89ede4,#7097dc); color:#fff; font-weight:900; letter-spacing:.14em; font-size:13px; padding:4px 14px; border-radius:999px; }
-    .banner-fallback .gf { color:#fff; font-weight:900; font-size:44px; letter-spacing:-1px; line-height:1; }
-    .banner-fallback .gf b { color:#442587; background:#89ede4; padding:0 6px; margin-left:2px; transform:rotate(-2deg); display:inline-block; }
-    .banner img { z-index:1; position: absolute; left: 0; top: 0; height: calc(100% + 3px); width: auto; max-width: none; }
-    .banner-links { display: flex; justify-content: flex-end; gap: 10px; margin: 8px 0 18px; flex-wrap: wrap; }
-    .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--indigo); background: rgba(255,255,255,.85); backdrop-filter: blur(6px); padding: 8px 14px; border-radius: 999px; text-decoration: none; }
-    .chip:hover { background: #fff; }
+    /* Header */
+    .hdr { border-bottom: 1px solid var(--border); }
+    .hdr-in { max-width: 1100px; margin: 0 auto; height: 108px; padding: 0 24px; display: flex; align-items: center; justify-content: center; position: relative; }
+    .hdr-logo img { height: 74px; border-radius: 10px; display: block; }
+    .hdr-logo .txt { display: none; background: #5a4ed5; color: #fff; font-weight: 900; font-size: 26px; padding: 12px 18px; border-radius: 10px; text-decoration: none; }
+    .hdr-logo .txt b { background: #89ede4; color: #442587; padding: 0 5px; }
+    .hdr-cart { position: absolute; right: 24px; color: var(--accent); display: flex; }
 
-    /* ---------- Hero band (continúa el banner) ---------- */
-    .band { background: linear-gradient(90deg, #5a4ed5 0, #5a4ed5 700px, #7097dc 1200px, #89ede4 1920px); color: #fff; padding: 12px 0 110px; position: relative; overflow: hidden; }
-    .band .wrap { position: relative; z-index: 1; }
-    .band h1 { font-weight: 900; font-size: clamp(30px, 4.6vw, 48px); line-height: 1.05; letter-spacing: -.02em; margin: 0; }
-    .band h1 .hl { color: var(--mint); }
-    .band p { color: rgba(255,255,255,.88); font-size: 17px; line-height: 1.55; margin: 12px 0 0; max-width: 560px; font-weight: 600; }
-    .spark { position: absolute; z-index: 0; }
-    .steps { display: flex; gap: 8px; list-style: none; padding: 0; margin: 26px 0 0; flex-wrap: wrap; }
-    .steps li { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: rgba(255,255,255,.7); background: rgba(255,255,255,.12); padding: 6px 14px 6px 6px; border-radius: 999px; }
-    .steps .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.2); font-size: 12px; }
-    .steps li.on { background: #fff; color: var(--indigo); }
-    .steps li.on .n { background: var(--green); color: #fff; }
-    .steps li.done { color: #fff; }
-    .steps li.done .n { background: var(--mint); color: var(--indigo); }
+    /* Grilla: izquierda blanca, derecha gris a sangre */
+    .page { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 108px); }
+    .main { padding: 38px 32px 32px; display: flex; justify-content: flex-end; }
+    .main-in { width: 100%; max-width: 440px; }
+    .side { background: var(--side); border-left: 1px solid var(--border); padding: 38px 32px; }
+    .side-in { width: 100%; max-width: 360px; position: sticky; top: 38px; }
 
-    /* ---------- Checkout ---------- */
-    .checkout { margin-top: -80px; padding-bottom: 64px; position: relative; z-index: 2; }
-    .grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 24px; align-items: start; }
-    .card { background: var(--white); border-radius: var(--radius-xl); box-shadow: 0 24px 60px -30px rgba(39,25,127,.45); }
+    h2 { font-size: 21px; font-weight: 600; margin: 0 0 14px; }
+    h3 { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
+    section { margin-bottom: 32px; }
+    .row-h { display: flex; justify-content: space-between; align-items: baseline; }
+    .row-h a { font-size: 14px; }
+    .sub { color: var(--muted); font-size: 13px; margin: -8px 0 14px; }
 
-    .summary { padding: 34px 32px 0; position: sticky; top: 20px; overflow: hidden; }
-    .marker { display: inline-block; background: var(--lilac); border-radius: 18px; padding: 2px 16px 6px; }
-    .summary h2 { font-size: clamp(30px, 3.4vw, 40px); font-weight: 900; line-height: 1.02; letter-spacing: -.02em; margin: 0; text-align: center; }
-    .summary h2 small { display: block; font-size: .72em; margin-top: 6px; }
-    .summary .sub { text-align: center; color: var(--indigo); font-size: 16px; line-height: 1.45; margin: 14px auto 0; max-width: 360px; font-weight: 600; }
-    .perks { display: grid; grid-template-columns: repeat(3, 1fr); margin: 26px 0 8px; }
-    .perk { text-align: center; padding: 0 8px; }
-    .perk + .perk { border-left: 1px solid var(--line); }
-    .perk .ic { width: 52px; height: 52px; border-radius: 50%; background: var(--lilac); display: grid; place-items: center; margin: 0 auto 10px; color: var(--indigo); }
-    .perk b { display: block; font-size: 20px; font-weight: 900; line-height: 1; }
-    .perk span { font-size: 13px; font-weight: 700; line-height: 1.25; display: block; margin-top: 4px; }
-    .perk.small b { font-size: 13px; line-height: 1.25; }
+    /* Campos con label flotante */
+    .f { position: relative; margin-bottom: 12px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid2 .f { margin-bottom: 0; }
+    .grid2 + .f, .grid2 + .grid2 { margin-top: 12px; }
+    .f input, .f select { width: 100%; height: 52px; border: 1px solid var(--border); border-radius: var(--r); padding: 18px 12px 4px; background: #fff; outline: none; appearance: none; }
+    .f label { position: absolute; left: 13px; top: 17px; color: var(--muted); pointer-events: none; transition: all .12s; font-size: 14px; }
+    .f input:focus, .f select:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .f input:focus + label, .f input:not(:placeholder-shown) + label, .f select + label { top: 7px; font-size: 12px; }
+    .f.err input { border-color: var(--error); box-shadow: 0 0 0 1px var(--error); }
+    .f .msg { color: var(--error); font-size: 12px; margin-top: 6px; display: none; }
+    .f.err .msg { display: block; }
+    .f .chev { position: absolute; right: 12px; top: 18px; pointer-events: none; color: var(--muted); }
+    .check { display: flex; gap: 10px; align-items: center; margin-top: 4px; font-size: 14px; }
+    .check input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
 
-    .total { margin-top: 22px; background: var(--lilac-soft); border-radius: var(--radius-md); padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .total .label { font-size: 14px; font-weight: 800; }
-    .total .label small { display: block; font-weight: 700; color: var(--muted); font-size: 12px; margin-top: 2px; }
-    .total .amount { font-size: 32px; font-weight: 900; letter-spacing: -.02em; }
-    .valid { text-align: center; font-size: 12px; color: var(--muted); font-weight: 700; margin: 12px 0 0; }
+    /* Grupos de opciones (envío / pago / facturación) */
+    .opts { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .opt { border-top: 1px solid var(--border); }
+    .opt:first-child { border-top: 0; }
+    .opt > label { display: flex; align-items: center; gap: 12px; padding: 15px 14px; cursor: pointer; min-height: 54px; }
+    .opt input[type=radio] { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); flex: none; }
+    .opt .t { flex: 1; }
+    .opt .t small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .opt .p { font-weight: 600; }
+    .opt.sel > label { background: var(--accent-bg); box-shadow: inset 0 0 0 1px var(--accent); }
+    .opt .body { display: none; background: var(--side); border-top: 1px solid var(--border); padding: 16px 14px; }
+    .opt.sel .body { display: block; }
+    .opt .body.center { text-align: center; color: var(--text); line-height: 1.45; }
+    .logos { display: flex; gap: 4px; align-items: center; }
+    .logos span { height: 22px; min-width: 34px; border-radius: 3px; display: grid; place-items: center; font-size: 9px; font-weight: 800; color: #fff; padding: 0 4px; letter-spacing: .02em; }
+    .l-visa { background: #1a1f71; } .l-mc { background: #222; } .l-amex { background: #2e77bb; } .l-mp { background: #00b1ea; } .l-cash { background: #ffe600; color: #333 !important; } .l-pf { background: #f7c600; color: #333 !important; } .l-rp { background: #e30613; }
+    .l-more { color: var(--muted) !important; font-size: 11px !important; min-width: auto !important; }
+    #cardBrick { min-height: 120px; }
+    .cash-choice { display: flex; gap: 10px; }
+    .cash-choice label { flex: 1; border: 1px solid var(--border); background: #fff; border-radius: var(--r); padding: 12px; display: flex; gap: 8px; align-items: center; cursor: pointer; }
+    .cash-choice input { accent-color: var(--accent); }
 
-    .sign { margin: 22px -32px 0; border-top: 1px solid var(--line); padding: 16px 32px; display: flex; align-items: center; justify-content: center; gap: 16px; }
-    .sign .wm { font-weight: 900; font-size: 22px; letter-spacing: -.5px; color: var(--indigo); }
-    .sign .sep { width: 1px; height: 30px; background: var(--line); }
-    .sign .tag { font-size: 13px; font-weight: 700; line-height: 1.2; }
+    .btn-pay { width: 100%; height: 56px; border: 0; border-radius: var(--r); background: var(--cta); color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-pay:hover { background: var(--cta-hover); }
+    .btn-pay[disabled] { opacity: .7; cursor: default; }
+    .btn-pay .spin { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: s .7s linear infinite; display: none; }
+    .btn-pay.loading .spin { display: block; }
+    .btn-pay.loading .lbl { display: none; }
+    @keyframes s { to { transform: rotate(360deg); } }
+    .alert { display: none; background: #fff1f1; border: 1px solid #f3c1c1; color: #8a1111; border-radius: var(--r); padding: 12px 14px; margin-bottom: 14px; line-height: 1.4; }
+    .alert.show { display: block; }
 
-    .pay { padding: 32px; min-height: 440px; }
-    .pay h3 { font-size: 24px; font-weight: 900; letter-spacing: -.01em; margin: 0; }
-    .pay .sub { color: var(--muted); font-size: 14px; margin: 6px 0 20px; font-weight: 600; }
-    #paymentBrick_container { min-height: 200px; }
-    .loading { display: grid; place-items: center; gap: 12px; padding: 48px 0; color: var(--muted); font-size: 14px; font-weight: 700; }
-    .spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--lilac); border-top-color: var(--purple); animation: spin .8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .config-warning { border: 1.5px dashed var(--purple); border-radius: var(--radius-md); padding: 18px; font-size: 14px; line-height: 1.55; background: var(--lilac-soft); }
-    .config-warning code { background: var(--lilac); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
-    .trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 800; color: var(--muted); }
-    .trust span { display: inline-flex; align-items: center; gap: 6px; }
+    .foot { border-top: 1px solid var(--border); margin-top: 34px; padding-top: 16px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
 
-    /* ---------- Resultado ---------- */
-    .result { display: none; text-align: center; padding: 20px 0 8px; }
-    .result.show { display: block; }
-    .result .badge { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 18px; }
-    .result.ok .badge { background: #dff5ea; color: var(--green); }
-    .result.pending .badge { background: var(--lilac); color: var(--indigo); }
-    .result.bad .badge { background: #fde8ea; color: var(--error); }
-    .result h3 { font-size: 28px; }
-    .result p { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 380px; margin: 10px auto 0; font-weight: 600; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--green); color: #fff; border: 0; border-radius: 999px; padding: 15px 28px; font: 900 16px "Nunito", sans-serif; text-decoration: none; cursor: pointer; margin-top: 22px; box-shadow: 0 8px 20px -10px rgba(19,164,94,.8); }
-    .btn:hover { background: var(--green-600); }
-    .btn.ghost { background: transparent; color: var(--indigo); border: 2px solid var(--indigo); box-shadow: none; }
+    /* Resumen */
+    .item { display: flex; align-items: center; gap: 14px; }
+    .thumb { position: relative; width: 64px; height: 64px; border-radius: 8px; border: 1px solid var(--border); background: #5a4ed5; display: grid; place-items: center; flex: none; }
+    .thumb img { width: 40px; height: 40px; border-radius: 9px; }
+    .thumb .q { position: absolute; top: -8px; right: -8px; background: #333; color: #fff; font-size: 12px; font-weight: 600; min-width: 22px; height: 22px; border-radius: 11px; display: grid; place-items: center; }
+    .item .n { flex: 1; line-height: 1.35; }
+    .item .n small { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .item .pr { text-align: right; }
+    .lines { margin-top: 24px; display: grid; gap: 8px; }
+    .line { display: flex; justify-content: space-between; }
+    .line.tot { margin-top: 8px; align-items: baseline; }
+    .line.tot .k { font-size: 19px; font-weight: 600; }
+    .line.tot .v { font-size: 19px; font-weight: 600; }
+    .line.tot .v small { font-size: 12px; color: var(--muted); font-weight: 400; margin-right: 6px; }
+    .perks { margin-top: 22px; display: grid; gap: 8px; color: #444; font-size: 13px; }
+    .perks div { display: flex; gap: 8px; align-items: center; }
+    .perks svg { color: var(--accent); flex: none; }
 
-    /* ---------- Footer ---------- */
-    .site-footer { background: var(--indigo); color: rgba(255,255,255,.75); font-size: 13px; font-weight: 600; }
-    .site-footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 26px; padding-bottom: 26px; flex-wrap: wrap; }
-    .site-footer nav { display: flex; gap: 20px; flex-wrap: wrap; }
-    .site-footer a { text-decoration: none; }
-    .site-footer a:hover { color: #fff; }
+    /* Toggle de resumen en mobile */
+    .m-sum { display: none; }
 
-    /* ---------- Responsive ---------- */
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: 1fr; }
-      .summary { position: static; }
-      .banner { height: 120px; }
-      .banner-links .chip.secure { display: none; }
-    }
-    @media (max-width: 560px) {
-      .wrap { padding: 0 16px; }
-      .banner { height: 96px; }
-      .banner-links { justify-content: flex-start; margin-top: 4px; }
-      .chip { font-size: 12px; padding: 6px 10px; }
-      .band { padding-bottom: 96px; }
-      .summary { padding: 26px 20px 0; }
-      .sign { margin: 20px -20px 0; padding: 14px 20px; }
-      .pay { padding: 24px 20px; }
-      .perk .ic { width: 44px; height: 44px; }
-      .perk b { font-size: 17px; }
-      .perk span, .perk.small b { font-size: 12px; }
+    /* Confirmación */
+    .done { display: none; }
+    .done.show { display: block; }
+    .done .head { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
+    .done .ok { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--cta); color: var(--cta); display: grid; place-items: center; flex: none; }
+    .done .ok.pend { border-color: var(--accent); color: var(--accent); }
+    .done .head small { color: var(--muted); display: block; }
+    .done .head b { font-size: 21px; font-weight: 600; }
+    .box { border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 16px; line-height: 1.5; }
+    .box h3 { margin-bottom: 6px; }
+    .btn-sec { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 24px; background: var(--cta); color: #fff; border-radius: var(--r); text-decoration: none; font-weight: 600; font-size: 15px; }
+
+    @media (max-width: 999px) {
+      .page { grid-template-columns: 1fr; }
+      .side { display: none; border-left: 0; border-bottom: 1px solid var(--border); padding: 20px; }
+      .side.open { display: block; }
+      .side-in, .main-in { max-width: 560px; margin: 0 auto; }
+      .main { justify-content: center; padding: 24px 20px; }
+      .hdr-in { height: 84px; }
+      .hdr-logo img { height: 56px; }
+      .m-sum { display: flex; justify-content: space-between; align-items: center; width: 100%; background: var(--side); border: 0; border-bottom: 1px solid var(--border); padding: 16px 20px; color: var(--accent); cursor: pointer; font-size: 14px; }
+      .m-sum b { color: var(--text); font-size: 17px; }
+      .page { min-height: 0; }
     }
   </style>
 </head>
 <body>
 
-  <header class="banner" role="banner">
-    <img src="assets/gestofest-banner.gif" alt="GestoFest · Edición 2026" onerror="this.remove()" />
-    <div class="banner-fallback" aria-hidden="true"><span class="pill">EDICIÓN 2026</span><span class="gf">gesto<b>Fest</b></span></div>
-  </header>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="hdr-logo" href="https://gestorando.com" aria-label="GestoFest · Gestorando">
+      <img src="assets/gestofest-logo.png" alt="GestoFest · Edición 2026" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
+      <span class="txt">gesto<b>Fest</b></span>
+    </a>
+    <a class="hdr-cart" href="https://gestorando.com" aria-label="Volver">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+    </a>
+  </div>
+</header>
 
-  <section class="band">
-    <!-- destellos como en el banner -->
-    <svg class="spark" style="right:12%;top:18px" width="22" height="22" viewBox="0 0 24 24"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5z" fill="#89ede4"/></svg>
-    <svg class="spark" style="right:28%;top:70px" width="14" height="14" viewBox="0 0 24 24"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5z" fill="#f5c542"/></svg>
-    <svg class="spark" style="right:6%;top:120px" width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#e84d8a"/></svg>
-    <svg class="spark" style="left:48%;top:24px;transform:rotate(-25deg)" width="8" height="18" viewBox="0 0 8 18"><rect width="8" height="18" rx="4" fill="#f5c542"/></svg>
+<button class="m-sum" id="mSum" type="button" aria-expanded="false">
+  <span>Mostrar resumen del pedido ▾</span><b>$ 41.500,00</b>
+</button>
 
-    <div class="wrap">
-      <div class="banner-links">
-        <span class="chip secure">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-        Pago seguro con Mercado Pago
-      </span>
-        <a class="chip" href="https://gestorando.com">← Volver a Gestorando</a>
-    </div>
-      <h1>Quedate en el festival: <span class="hl">seguí siendo Premium.</span></h1>
-      <p>Simplificá tu Monotributo, ahorrá tiempo y hacé rendir más cada peso.</p>
-      <ol class="steps" aria-label="Pasos">
-        <li class="done"><span class="n">✓</span>Tu plan</li>
-        <li class="on" id="step-pay"><span class="n">2</span>Pago</li>
-        <li id="step-done"><span class="n">3</span>¡Listo!</li>
-      </ol>
-    </div>
-  </section>
+<div class="page">
+  <!-- ============ Columna izquierda ============ -->
+  <main class="main">
+    <div class="main-in">
 
-  <main class="checkout">
-    <div class="wrap grid">
-
-      <!-- Resumen, con la lógica de la pieza de vía pública -->
-      <aside class="card summary" aria-label="Resumen de compra">
-        <h2><span class="marker">Premium anual</span><small>de Gestorando</small></h2>
-        <p class="sub">Facturación automática, integración con Mercado Pago y recategorización resuelta. Todo el año.</p>
-
-        <div class="perks">
-          <div class="perk">
-            <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div>
-            <b>+150</b><span>descuentos</span>
+      <div id="checkout">
+        <section>
+          <div class="row-h"><h2>Contacto</h2><a href="https://app.gestorando.com" target="_blank" rel="noopener">Iniciar sesión</a></div>
+          <div class="f" id="f-email">
+            <input id="email" type="email" placeholder=" " autocomplete="email" />
+            <label for="email">Correo electrónico</label>
+            <div class="msg">Ingresá el email de tu cuenta de Gestorando</div>
           </div>
-          <div class="perk">
-            <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v9H5v-9"/><path d="M7.5 8a2.5 2.5 0 1 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 1 1 0 5"/></svg></div>
-            <span>Voucher de</span><b>$60.000</b><span>en Temu</span>
+          <label class="check"><input type="checkbox" id="news" checked /> Enviarme novedades y beneficios de Gestorando</label>
+        </section>
+
+        <section>
+          <h2>Datos de facturación</h2>
+          <div class="f">
+            <select id="country" disabled><option>Argentina</option></select>
+            <label for="country">País / Región</label>
+            <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
           </div>
-          <div class="perk small">
-            <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a8 5 0 0 1 16 0z"/><path d="M3 14h18"/><path d="M4 18h16a0 0 0 0 1 0 0 2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg></div>
-            <span>Beneficios en</span><b>Burger King, Mostaza y La Mantequería</b>
+          <div class="grid2">
+            <div class="f" id="f-first"><input id="first" placeholder=" " autocomplete="given-name" /><label for="first">Nombre</label><div class="msg">Ingresá tu nombre</div></div>
+            <div class="f" id="f-last"><input id="last" placeholder=" " autocomplete="family-name" /><label for="last">Apellidos</label><div class="msg">Ingresá tu apellido</div></div>
           </div>
-        </div>
-
-        <div class="total">
-          <div class="label">Total a pagar<small>Pago único · Plan anual</small></div>
-          <div class="amount">$41.500</div>
-        </div>
-        <p class="valid">Oferta válida hasta el 2 de noviembre</p>
-
-        <div class="sign">
-          <span class="wm">gestorando</span>
-          <span class="sep"></span>
-          <span class="tag">El festival de los<br>monotributistas</span>
-        </div>
-      </aside>
-
-      <!-- Pago -->
-      <section class="card pay" aria-label="Pago">
-        <div id="pay-area">
-          <h3>¿Cómo querés pagar?</h3>
-          <p class="sub">Usá el mismo email de tu cuenta de Gestorando.</p>
-          <div id="paymentBrick_container">
-            <div class="loading" id="brick-loading"><div class="spinner"></div>Cargando medios de pago…</div>
+          <div class="grid2">
+            <div class="f">
+              <select id="docType"><option value="DNI">DNI</option><option value="CUIT">CUIT</option><option value="CUIL">CUIL</option></select>
+              <label for="docType">Tipo de documento</label>
+              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="f" id="f-doc"><input id="doc" inputmode="numeric" placeholder=" " /><label for="doc">Número</label><div class="msg">Ingresá un número válido</div></div>
           </div>
-        </div>
+          <div class="f"><input id="phone" type="tel" placeholder=" " autocomplete="tel" /><label for="phone">Teléfono (opcional)</label></div>
+        </section>
 
-        <div class="result" id="result" role="status" aria-live="polite">
-          <div class="badge" id="result-icon"></div>
-          <h3 id="result-title"></h3>
-          <p id="result-text"></p>
-          <div id="result-actions"></div>
-        </div>
+        <section>
+          <h3>Método de activación</h3>
+          <div class="opts">
+            <div class="opt sel">
+              <label><input type="radio" checked /><span class="t">Activación en tu cuenta de Gestorando<small>Inmediata al acreditarse el pago</small></span><span class="p">GRATIS</span></label>
+            </div>
+          </div>
+        </section>
 
-        <div class="trust">
-          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Datos cifrados</span>
-          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>Procesado por Mercado Pago</span>
-          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/></svg>Te llega la factura por mail</span>
+        <section>
+          <h2>Pago</h2>
+          <p class="sub">Todas las transacciones son seguras y están encriptadas.</p>
+          <div class="alert" id="alert"></div>
+          <div class="opts" id="payOpts">
+            <div class="opt" data-m="card">
+              <label><input type="radio" name="pm" value="card" /><span class="t">Tarjeta de crédito o débito</span>
+                <span class="logos"><span class="l-visa">VISA</span><span class="l-mc">MC</span><span class="l-amex">AMEX</span></span></label>
+              <div class="body"><div id="cardBrick"></div></div>
+            </div>
+            <div class="opt" data-m="mp">
+              <label><input type="radio" name="pm" value="mp" /><span class="t">Mercado Pago</span>
+                <span class="logos"><span class="l-mp">MP</span><span class="l-visa">VISA</span><span class="l-mc">MC</span><span class="l-more">+3</span></span></label>
+              <div class="body center">Se te redirigirá a Mercado Pago para completar tu compra con dinero en cuenta, tarjetas guardadas o Cuotas sin Tarjeta.</div>
+            </div>
+            <div class="opt" data-m="cash">
+              <label><input type="radio" name="pm" value="cash" /><span class="t">Efectivo</span>
+                <span class="logos"><span class="l-rp">RAPI</span><span class="l-pf">PF</span></span></label>
+              <div class="body">
+                <div class="cash-choice">
+                  <label><input type="radio" name="cash" value="rapipago" checked /> Rapipago</label>
+                  <label><input type="radio" name="cash" value="pagofacil" /> Pago Fácil</label>
+                </div>
+                <p style="margin:12px 0 0;color:var(--muted);font-size:13px">Te damos un cupón para pagar en cualquier sucursal. Tu Premium se activa cuando se acredita.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <button class="btn-pay" id="payBtn" type="button"><span class="lbl">Pagar ahora</span><span class="spin"></span></button>
+
+        <nav class="foot">
+          <a href="https://gestorando.com/politica-de-privacidad/">Política de privacidad</a>
+          <a href="https://gestorando.com/terminos-y-condiciones/">Términos del servicio</a>
+          <a href="https://gestorando.com/contacto/">Contacto</a>
+        </nav>
+      </div>
+
+      <!-- Confirmación -->
+      <div class="done" id="done">
+        <div class="head">
+          <div class="ok" id="doneIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+          <div><small id="doneRef">Pedido confirmado</small><b id="doneTitle">¡Gracias!</b></div>
         </div>
-      </section>
+        <div class="box"><h3 id="doneH">Tu Premium está activo</h3><div id="doneText"></div></div>
+        <div id="doneAction"></div>
+      </div>
     </div>
   </main>
 
-  <footer class="site-footer">
-    <div class="wrap">
-      <span>© Gestorando · GestoFest 2026</span>
-      <nav>
-        <a href="https://gestorando.com/terminos-y-condiciones/">Términos y condiciones</a>
-        <a href="https://gestorando.com/politica-de-privacidad/">Privacidad</a>
-        <a href="https://gestorando.com/contacto/">Ayuda</a>
-      </nav>
+  <!-- ============ Columna derecha: resumen ============ -->
+  <aside class="side" id="side">
+    <div class="side-in">
+      <div class="item">
+        <div class="thumb"><img src="assets/gestofest-logo.png" alt="" style="object-fit:cover;object-position:10px center" onerror="this.remove()" /><span class="q">1</span></div>
+        <div class="n">Gestorando Premium – Plan anual
+          <small><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>GESTOFEST 2026</small>
+        </div>
+        <div class="pr">$ 41.500,00</div>
+      </div>
+
+      <div class="lines">
+        <div class="line"><span>Subtotal · 1 artículo</span><span>$ 41.500,00</span></div>
+        <div class="line"><span>Activación</span><span>GRATIS</span></div>
+        <div class="line tot"><span class="k">Total</span><span class="v"><small>ARS</small>$ 41.500,00</span></div>
+      </div>
+
+      <div class="perks">
+        <div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>Facturación automática e integración con Mercado Pago</div>
+        <div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>Recategorización acompañada</div>
+        <div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>+150 descuentos, voucher en Temu y beneficios en Burger King, Mostaza y La Mantequería</div>
+      </div>
     </div>
-  </footer>
+  </aside>
+</div>
 
-  <script>
-  /* =================================================================
-     CONFIGURACIÓN — completar antes de publicar
-     ================================================================= */
-  const CONFIG = {
-    PUBLIC_KEY: "APP_USR-2ddb951b-1429-4b76-bf72-e72f6660da0d", // PRUEBA (app GestoFest Checkout). Reemplazar por la de producción al salir.
-    AMOUNT: 41500,                              // Plan Premium anual (ARS)
-    PREFERENCE_ENDPOINT: "/api/create-preference", // habilita "Dinero en cuenta MP" y "Cuotas sin tarjeta"
-    PAYMENT_ENDPOINT: "/api/process-payment",
-    MAX_INSTALLMENTS: 12,
-    SUCCESS_URL: "https://gestorando.com",
-    DEMO_MODE: false,                           // true = no cobra: simula un pago aprobado (para mostrar el flujo)
-  };
+<script>
+/* ===================== CONFIGURACIÓN ===================== */
+const CONFIG = {
+  PUBLIC_KEY: "APP_USR-2ddb951b-1429-4b76-bf72-e72f6660da0d", // PRUEBA (app GestoFest Checkout). Reemplazar por la de producción.
+  AMOUNT: 41500,
+  PAYMENT_ENDPOINT: "/api/process-payment",
+  PREFERENCE_ENDPOINT: "/api/create-preference",
+  MAX_INSTALLMENTS: 12,
+  SUCCESS_URL: "https://gestorando.com",
+  DEMO_MODE: false, // true = no cobra, simula el resultado
+};
+/* ========================================================= */
 
-  /* Estilo del Brick con la paleta GestoFest */
-  const BRICK_STYLE = {
-    theme: "default",
-    customVariables: {
-      textPrimaryColor: "#27197f",
-      textSecondaryColor: "#5e5a7a",
-      inputBackgroundColor: "#ffffff",
-      formBackgroundColor: "#ffffff",
-      baseColor: "#13a45e",              // botón "Pagar" verde como el CTA de la campaña
-      baseColorFirstVariant: "#0f8c50",
-      baseColorSecondVariant: "#ddd8fc",
-      errorColor: "#d93a4a",
-      successColor: "#13a45e",
-      outlinePrimaryColor: "#e6e3f3",
-      outlineSecondaryColor: "#ddd8fc",
-      buttonTextColor: "#ffffff",
-      fontSizeExtraSmall: "12px",
-      fontSizeSmall: "14px",
-      fontSizeMedium: "16px",
-      fontSizeLarge: "18px",
-      fontSizeExtraLarge: "22px",
-      fontWeightNormal: "600",
-      fontWeightSemiBold: "800",
-      inputVerticalPadding: "12px",
-      inputHorizontalPadding: "14px",
-      inputFocusedBoxShadow: "0 0 0 3px rgba(90,78,213,.22)",
-      inputErrorFocusedBoxShadow: "0 0 0 3px rgba(217,58,74,.18)",
-      inputBorderWidth: "1.5px",
-      inputFocusedBorderWidth: "1.5px",
-      borderRadiusSmall: "10px",
-      borderRadiusMedium: "14px",
-      borderRadiusLarge: "20px",
-      borderRadiusFull: "999px",
-      formPadding: "0px",
+const $ = (id) => document.getElementById(id);
+const bricks = window.MercadoPago ? new MercadoPago(CONFIG.PUBLIC_KEY, { locale: "es-AR" }).bricks() : null;
+let cardCtrl = null, cardEmail = null, method = null;
+
+/* Estilo del formulario de tarjeta para que parezca parte del checkout */
+const CARD_STYLE = {
+  theme: "default",
+  customVariables: {
+    textPrimaryColor: "#1a1a1a", textSecondaryColor: "#707070",
+    inputBackgroundColor: "#ffffff", formBackgroundColor: "#f5f5f5",
+    baseColor: "#5a4ed5", baseColorFirstVariant: "#4a3fc0", baseColorSecondVariant: "#f3f1ff",
+    errorColor: "#dd1d1d", successColor: "#13a45e",
+    outlinePrimaryColor: "#dedede", outlineSecondaryColor: "#dedede",
+    fontSizeSmall: "13px", fontSizeMedium: "14px", fontSizeLarge: "16px",
+    fontWeightNormal: "400", fontWeightSemiBold: "600",
+    inputVerticalPadding: "14px", inputHorizontalPadding: "12px",
+    inputFocusedBoxShadow: "0 0 0 1px #5a4ed5", inputErrorFocusedBoxShadow: "0 0 0 1px #dd1d1d",
+    inputBorderWidth: "1px", inputFocusedBorderWidth: "1px",
+    borderRadiusSmall: "5px", borderRadiusMedium: "5px", borderRadiusLarge: "5px",
+    formPadding: "0px",
+  },
+};
+
+async function mountCard() {
+  if (!bricks) return showAlert("No se pudo cargar Mercado Pago. Revisá tu conexión y recargá la página.");
+  const email = $("email").value.trim();
+  if (cardCtrl && cardEmail === email) return;
+  if (cardCtrl) { await cardCtrl.unmount(); cardCtrl = null; }
+  cardEmail = email;
+  cardCtrl = await bricks.create("cardPayment", "cardBrick", {
+    initialization: { amount: CONFIG.AMOUNT, ...(validEmail(email) ? { payer: { email } } : {}) },
+    customization: {
+      visual: { style: CARD_STYLE, hidePaymentButton: true, hideFormTitle: true,
+        texts: { cardholderName: { label: "Nombre del titular", placeholder: "Como figura en la tarjeta" },
+                 cardNumber: { label: "Número de tarjeta" }, expirationDate: { label: "Vencimiento (MM/AA)" },
+                 securityCode: { label: "Código de seguridad" }, selectInstallments: "Cuotas" } },
+      paymentMethods: { maxInstallments: CONFIG.MAX_INSTALLMENTS },
     },
+    callbacks: { onReady: () => {}, onSubmit: () => {}, onError: (e) => console.error(e) },
+  });
+}
+
+/* Selección de medio de pago (acordeón) */
+document.querySelectorAll('#payOpts input[name=pm]').forEach((r) => r.addEventListener("change", () => {
+  method = r.value;
+  document.querySelectorAll("#payOpts .opt").forEach((o) => o.classList.toggle("sel", o.dataset.m === method));
+  hideAlert();
+  if (method === "card") mountCard();
+}));
+$("email").addEventListener("change", () => { if (method === "card") mountCard(); });
+
+/* Resumen plegable en mobile */
+$("mSum").addEventListener("click", () => {
+  const open = $("side").classList.toggle("open");
+  $("mSum").setAttribute("aria-expanded", open);
+  $("mSum").firstElementChild.textContent = open ? "Ocultar resumen del pedido ▴" : "Mostrar resumen del pedido ▾";
+});
+
+/* Validación */
+function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function mark(id, ok) { $(id).classList.toggle("err", !ok); return ok; }
+function validate() {
+  const ok = [
+    mark("f-email", validEmail($("email").value.trim())),
+    mark("f-first", $("first").value.trim().length > 1),
+    mark("f-last", $("last").value.trim().length > 1),
+    mark("f-doc", /^\d{7,11}$/.test($("doc").value.replace(/\D/g, ""))),
+  ].every(Boolean);
+  if (!ok) document.querySelector(".f.err input")?.focus();
+  return ok;
+}
+function payer() {
+  return {
+    email: $("email").value.trim(),
+    first_name: $("first").value.trim(),
+    last_name: $("last").value.trim(),
+    identification: { type: $("docType").value, number: $("doc").value.replace(/\D/g, "") },
   };
+}
+function showAlert(t) { $("alert").textContent = t; $("alert").classList.add("show"); $("alert").scrollIntoView({ block: "center", behavior: "smooth" }); }
+function hideAlert() { $("alert").classList.remove("show"); }
+function busy(b) { $("payBtn").disabled = b; $("payBtn").classList.toggle("loading", b); }
 
-  const BRICK_TEXTS = {
-    formTitle: "Activá tu Premium",
-    emailSectionTitle: "¿A qué mail te mandamos la factura?",
-    installmentsSectionTitle: "Elegí en cuántas cuotas",
-    email: { label: "Email", placeholder: "El mismo que usás en Gestorando" },
-    cardholderName: { label: "Nombre como figura en la tarjeta", placeholder: "Ej.: María López" },
-    cardNumber: { label: "Número de tarjeta" },
-    expirationDate: { label: "Vencimiento" },
-    securityCode: { label: "Código de seguridad" },
-    selectInstallments: "Elegí las cuotas",
-    formSubmit: "Activá tu Premium →",
-    paymentMethods: {
-      creditCardTitle: "Tarjeta de crédito",
-      debitCardTitle: "Tarjeta de débito",
-      ticketTitle: "Efectivo en Rapipago o Pago Fácil",
-    },
-  };
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw data;
+  return data;
+}
 
-  /* ================================================================= */
-
-  const $ = (id) => document.getElementById(id);
-
-  function setStepDone() {
-    $("step-pay").className = "done";
-    $("step-pay").querySelector(".n").textContent = "✓";
-    $("step-done").className = "on";
-  }
-
-  const ICONS = {
-    ok: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
-    pending: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-    bad: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
-  };
-
-  function showResult(kind, title, text, actionsHtml) {
-    $("pay-area").style.display = "none";
-    const r = $("result");
-    r.className = "result show " + kind;
-    $("result-icon").innerHTML = ICONS[kind];
-    $("result-title").textContent = title;
-    $("result-text").textContent = text;
-    $("result-actions").innerHTML = actionsHtml || "";
-    if (kind !== "bad") setStepDone();
-    r.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  function handlePayment(p) {
-    const ticketUrl = p?.point_of_interaction?.transaction_data?.ticket_url
-                   || p?.transaction_details?.external_resource_url;
-    if (p.status === "approved") {
-      showResult("ok", "¡Listo! Seguís en el festival.",
-        "Recibimos tu pago y tu Premium queda activo por todo el año. Te mandamos el comprobante por mail.",
-        `<a class="btn" href="${CONFIG.SUCCESS_URL}">Ir a Gestorando →</a>`);
-    } else if (ticketUrl) {
-      showResult("pending", "Te falta un pasito.",
-        "Generamos tu cupón. Pagalo en efectivo y, cuando se acredite, activamos tu Premium.",
-        `<a class="btn" href="${ticketUrl}" target="_blank" rel="noopener">Ver cupón de pago →</a>`);
-    } else if (p.status === "in_process" || p.status === "pending") {
-      showResult("pending", "Estamos procesando tu pago.",
-        "Mercado Pago lo está revisando. Te avisamos por mail apenas se acredite.",
-        `<a class="btn ghost" href="${CONFIG.SUCCESS_URL}">Volver a Gestorando</a>`);
-    } else {
-      showResult("bad", "El pago no pasó.",
-        "No se te cobró nada. Probá con otro medio de pago o revisá los datos de la tarjeta.",
-        `<button class="btn" onclick="location.reload()">Intentar de nuevo</button>`);
-    }
-  }
-
-  async function getPreferenceId() {
-    if (CONFIG.DEMO_MODE) return null;
-    try {
-      const r = await fetch(CONFIG.PREFERENCE_ENDPOINT, { method: "POST" });
-      if (!r.ok) return null;
-      const { id } = await r.json();
-      return id || null;
-    } catch { return null; }
-  }
-
-  async function init() {
-    if (!CONFIG.PUBLIC_KEY || CONFIG.PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
-      $("paymentBrick_container").innerHTML =
-        '<div class="config-warning"><strong>Falta configurar Mercado Pago.</strong><br>' +
-        'Completá <code>PUBLIC_KEY</code> en el bloque <code>CONFIG</code> de este archivo y la variable ' +
-        '<code>MP_ACCESS_TOKEN</code> en Vercel. Ver README.</div>';
+/* Pagar ahora */
+$("payBtn").addEventListener("click", async () => {
+  hideAlert();
+  if (!validate()) return;
+  if (!method) return showAlert("Elegí un medio de pago.");
+  busy(true);
+  try {
+    if (method === "card") {
+      if (!cardCtrl) await mountCard();
+      const formData = await cardCtrl.getFormData();       // valida y tokeniza la tarjeta
+      if (!formData) { busy(false); return; }             // el formulario muestra sus errores
+      const extra = await cardCtrl.getAdditionalData?.();
+      const body = { ...formData, payer: { ...formData.payer, ...payer() },
+                     selectedPaymentMethod: extra?.paymentTypeId || formData.payment_type_id || "credit_card" };
+      const res = CONFIG.DEMO_MODE ? await fake({ status: "approved" }) : await post(CONFIG.PAYMENT_ENDPOINT, body);
+      handle(res);
+    } else if (method === "mp") {
+      if (CONFIG.DEMO_MODE) { await fake(); return showAlert("Modo demo: acá te redirigiríamos a Mercado Pago."); }
+      const pref = await post(CONFIG.PREFERENCE_ENDPOINT, { payer: payer() });
+      location.href = pref.init_point;
       return;
+    } else if (method === "cash") {
+      const id = document.querySelector("input[name=cash]:checked").value;
+      const body = { payment_method_id: id, selectedPaymentMethod: "ticket", payer: payer() };
+      const res = CONFIG.DEMO_MODE ? await fake({ status: "pending", transaction_details: { external_resource_url: "#" } }) : await post(CONFIG.PAYMENT_ENDPOINT, body);
+      handle(res);
     }
+  } catch (e) {
+    console.error(e);
+    showAlert("No pudimos procesar el pago. No se te cobró nada; revisá los datos e intentá de nuevo.");
+  } finally { busy(false); }
+});
 
-    const mp = new MercadoPago(CONFIG.PUBLIC_KEY, { locale: "es-AR" });
-    const bricks = mp.bricks();
-    const preferenceId = await getPreferenceId();
+function esc(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+function fake(res) { return new Promise((ok) => setTimeout(() => ok(res), 1200)); }
 
-    const paymentMethods = {
-      creditCard: "all",
-      debitCard: "all",
-      ticket: "all",
-      maxInstallments: CONFIG.MAX_INSTALLMENTS,
-    };
-    if (preferenceId) paymentMethods.mercadoPago = "all";
-
-    const settings = {
-      initialization: {
-        amount: CONFIG.AMOUNT,
-        ...(preferenceId ? { preferenceId } : {}),
-      },
-      customization: {
-        visual: { style: BRICK_STYLE, texts: BRICK_TEXTS, hideFormTitle: true },
-        paymentMethods,
-      },
-      callbacks: {
-        onReady: () => { const l = $("brick-loading"); if (l) l.remove(); },
-        onSubmit: ({ selectedPaymentMethod, formData }) => {
-          if (selectedPaymentMethod === "wallet_purchase" || selectedPaymentMethod === "onboarding_credits") {
-            return Promise.resolve();
-          }
-          if (CONFIG.DEMO_MODE) {
-            return new Promise((ok) => setTimeout(() => {
-              handlePayment(selectedPaymentMethod === "ticket"
-                ? { status: "pending", transaction_details: { external_resource_url: "#" } }
-                : { status: "approved" });
-              ok();
-            }, 1200));
-          }
-          return fetch(CONFIG.PAYMENT_ENDPOINT, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...formData, selectedPaymentMethod }),
-          })
-            .then((r) => r.json().then((body) => ({ ok: r.ok, body })))
-            .then(({ ok, body }) => { if (!ok) throw body; handlePayment(body); })
-            .catch((err) => {
-              console.error(err);
-              showResult("bad", "No pudimos procesar el pago.",
-                "No se te cobró nada. Esperá un momento e intentá de nuevo.",
-                `<button class="btn" onclick="location.reload()">Intentar de nuevo</button>`);
-            });
-        },
-        onError: (error) => console.error("Brick error:", error),
-      },
-    };
-
-    window.paymentBrickController = await bricks.create("payment", "paymentBrick_container", settings);
+function handle(p) {
+  const ticket = p?.transaction_details?.external_resource_url;
+  if (p.status === "approved") {
+    done(true, "¡Gracias, " + $("first").value.trim() + "!", "Tu Premium está activo",
+      `Te enviamos el comprobante a <b>${esc($("email").value.trim())}</b>. Ya podés usar todo Premium en tu cuenta de Gestorando.`,
+      `<a class="btn-sec" href="${CONFIG.SUCCESS_URL}">Ir a Gestorando</a>`);
+  } else if (ticket) {
+    done(false, "Tu cupón está listo", "Pagalo en efectivo",
+      "Presentá el cupón en Rapipago o Pago Fácil. Cuando se acredite, activamos tu Premium y te avisamos por mail.",
+      `<a class="btn-sec" href="${ticket}" target="_blank" rel="noopener">Ver cupón de pago</a>`);
+  } else if (p.status === "pending" || p.status === "in_process") {
+    done(false, "Estamos procesando tu pago", "En revisión",
+      "Mercado Pago está revisando el pago. Te avisamos por mail apenas se acredite.",
+      `<a class="btn-sec" href="${CONFIG.SUCCESS_URL}">Volver a Gestorando</a>`);
+  } else {
+    showAlert("El pago fue rechazado. No se te cobró nada: probá con otra tarjeta u otro medio de pago.");
   }
-
-  init();
-  </script>
+}
+function done(ok, title, h, text, action) {
+  $("checkout").style.display = "none";
+  $("done").classList.add("show");
+  $("doneIcon").classList.toggle("pend", !ok);
+  if (!ok) $("doneIcon").innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  $("doneRef").textContent = ok ? "Pedido confirmado" : "Pedido pendiente";
+  $("doneTitle").textContent = title; $("doneH").textContent = h;
+  $("doneText").innerHTML = text; $("doneAction").innerHTML = action;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+</script>
 </body>
 </html>

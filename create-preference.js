@@ -1,6 +1,6 @@
 // Vercel Serverless Function — POST /api/create-preference
-// Crea una preferencia para habilitar "Dinero en cuenta de Mercado Pago" y "Cuotas sin tarjeta"
-// dentro del Payment Brick. Si falla, el checkout sigue funcionando con tarjeta y efectivo.
+// Crea una preferencia y devuelve init_point: el checkout redirige ahí cuando eligen "Mercado Pago"
+// (dinero en cuenta, tarjetas guardadas, Cuotas sin Tarjeta).
 
 const PRICE = 41500;
 const SITE = process.env.SITE_URL || "https://gestorando.com";
@@ -8,6 +8,7 @@ const SITE = process.env.SITE_URL || "https://gestorando.com";
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  const b = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
   try {
     const r = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
@@ -23,7 +24,7 @@ module.exports = async (req, res) => {
           unit_price: PRICE,
           currency_id: "ARS",
         }],
-        purpose: "wallet_purchase",
+        ...(b.payer?.email ? { payer: { email: b.payer.email, name: b.payer.first_name, surname: b.payer.last_name, identification: b.payer.identification } } : {}),
         external_reference: `gestofest-${Date.now()}`,
         metadata: { campaign: "gestofest", plan: "premium_anual" },
         back_urls: {
@@ -37,7 +38,7 @@ module.exports = async (req, res) => {
     });
     const data = await r.json();
     if (!r.ok) return res.status(r.status).json({ error: data.message || "preference_error" });
-    return res.status(200).json({ id: data.id });
+    return res.status(200).json({ id: data.id, init_point: data.init_point });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: "server_error" });
